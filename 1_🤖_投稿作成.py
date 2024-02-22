@@ -131,6 +131,7 @@ with tab2:
             sh.delete_all_data_in_namespace(index, "ns3")
             st.success("全データが削除されました！")
 
+
     with col3:
         index = sh.initialize_pinecone()  # Pineconeを初期化
         st.subheader("競合データの登録")
@@ -151,10 +152,9 @@ with tab2:
             # チャンクの埋め込みを生成
             embeddings = sh.make_chunks_embeddings(chunks)
 
-            metadata = sh.create_metadata_for_pdf(pdf_file2.name,chunks)
 
             # Pineconeにデータを保存
-            sh.store_pdf_data_in_pinecone(index, embeddings, metadata, "ns4")
+            sh.store_pdf_data_in_pinecone(index, embeddings, pdf_file2.name, "ns4")
             st.success("データをPineconeに登録しました！")
 
         # 全データ削除ボタン
@@ -185,10 +185,9 @@ with tab2:
             # チャンクの埋め込みを生成
             embeddings = sh.make_chunks_embeddings(chunks)
 
-            metadata = sh.create_metadata_for_pdf(pdf_file3.name,chunks)
 
             # Pineconeにデータを保存
-            sh.store_pdf_data_in_pinecone(index, embeddings, metadata, "ns5")
+            sh.store_pdf_data_in_pinecone(index, embeddings, pdf_file3.name, "ns5")
             st.success("データをPineconeに登録しました！")
 
         # 全データ削除ボタン
@@ -198,3 +197,4 @@ with tab2:
             # 全データを削除する関数を呼び出し
             sh.delete_all_data_in_namespace(index, "ns5")
             st.success("全データが削除されました！")
+
