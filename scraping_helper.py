@@ -231,11 +231,19 @@ def generate_response_with_llm_for_multiple_namespaces(index, user_input, namesp
             search_results = index.query(
                 namespace=ns,
                 vector=query_embedding.tolist(),
-                top_k=1,
+                top_k=3,
                 include_metadata=True
             )
-            result_texts = [result['metadata']['text_chunk'] for result in search_results['matches']]
-            results[ns] = " ".join(result_texts) if result_texts else "情報なし"
+            if ns == "ns3":
+                # ns3のメタデータを直接利用する特別な処理
+                if search_results['matches']:
+                    metadata = search_results['matches'][0]['metadata']
+                    # 新しいメタデータ形式に基づいて内容を整形してLLMに渡す
+                    results[ns] = "\n".join([f"{key}: {value}" for key, value in metadata.items()])
+            else:
+                # 他の名前空間の処理は変更なし
+                result_texts = [result['metadata']['text_chunk'] for result in search_results['matches']]
+                results[ns] = " ".join(result_texts) if result_texts else "情報なし"
         except KeyError as e:
             print(f"エラーが発生しました: 名前空間 '{ns}' で {e} キーが見つかりません。")
             results[ns] = "エラー: 検索結果が見つかりませんでした。"
@@ -250,7 +258,7 @@ def generate_response_with_llm_for_multiple_namespaces(index, user_input, namesp
     
     ----------
     【台本作成時のポイント】
-    ・MECEに詳しく書いてください
+    ・ユーザーインプットの「テーマ」を安直にタイトルに持ってくるのではなく、【過去Instagramで投稿された台本】の"1枚目-表紙 (タイトル)"キーを参照して、適切なタイトルをつけなさい。
     ・なるべく具体的にかいてください。そのため、1枚1枚の情報量は多くなっても良いです。
     ・数字で伝えられる部分はなるべくそうする。
     ・合計8枚以上で書いてください。
@@ -271,7 +279,6 @@ def generate_response_with_llm_for_multiple_namespaces(index, user_input, namesp
     ----------
     【アウトプット例】
     {example_plot}
-                                    
     """)
 
     # LLMにプロンプトを渡して応答を生成
@@ -290,6 +297,7 @@ def generate_response_with_llm_for_multiple_namespaces(index, user_input, namesp
             "example_plot": example_plot
         })
         return response
+
 
 
 
@@ -331,13 +339,12 @@ embeddings = make_chunks_embeddings(chunks)
 print("エンベディングスの数:", len(embeddings))
 
 #print("テスト: データをPineconeに保存")
-store_data_in_pinecone(index, embeddings, chunks, metadata_list, "ns2")
+store_data_in_pinecone(index, embeddings, chunks, metadata_list, "ns1")
 
 
 # クエリを実行して結果をプリント
 query = "トマトとはを最初に解説して、その後トマトの育て方を詳しく教えてください。 また栄養面からもトマトを育てるメリットを"
-search_results = perform_similarity_search(index, query, "ns2" , top_k=10)
+search_results = perform_similarity_search(index, query, "ns1" , top_k=1)
 print(search_results)
 
-
-#delete_all_data_in_namespace(index, "ns2")
+delete_all_data_in_namespace(index, "ns1")
