@@ -27,16 +27,14 @@ openai_api_key = st.secrets['OPENAI_API_KEY']
 # URLからコンテンツをスクレイピングする関数
 def scrape_url(url):
     try:
-        if not url:  # URLが空の場合は空の文字列を返す
-            return ""
-        
-        print(f"scrape_url: URL = {url}")
+        print(f"scrape_url: URL = {url}")  # デバッグ用プリント
         headers = {"Authorization": f"Bearer {apifyapi_key}"}
         payload = {"startUrls": [{"url": url}]}
         response = requests.post(apify_wcc_endpoint, json=payload, headers=headers)
 
+        # print(f"scrape_url: Response = {response.text[:100]}...")  # デバッグ用プリント（応答の最初の100文字を表示）
         if response.status_code in [200, 201]:
-            return response.text  # レスポンスをテキストとして返す
+            return response.text
         else:
             raise Exception(f"ステータスコード: {response.status_code}, レスポンス: {response.text}")
     except Exception as e:
