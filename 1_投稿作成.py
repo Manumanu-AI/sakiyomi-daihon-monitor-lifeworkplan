@@ -19,30 +19,30 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        user_input = st.text_area("生成指示 : 作りたいプロットのイメージを入力", value="""以下の内容で台本を書いてください。\nテーマ：\n\nターゲット：\n\nその他の指示：""", height=300)
-        url = st.text_input("参考URL")
+        user_input = st.text_area("生成指示 : 作りたいプロットのイメージを入力", value="""以下の内容で台本を書いてください。\nテーマ：後悔しないための会社選びの方法\n\nターゲット：1回目の転職に失敗し、2回目の転職では絶対に失敗したくないと思っている人。なんとしても納得した転職を実現したいと考えている。\n\nその他の指示：\n・5つのポイントごとに紹介するコンテンツにしたい\n・注意するべきことと、そのために何をするのかを明確にしたい""", height=300)
+        url = st.text_input("参考URL", value="https://shukatsu-mirai.com/archives/100625")
         submit_button = st.button('送信')
 
         if submit_button:
-            if url:  # 参考URLが入力されている場合のみ処理を実行
-                if 'last_url' not in st.session_state or st.session_state['last_url'] != url:
-                    index = sh.initialize_pinecone()
-                    try:
-                        sh.delete_all_data_in_namespace(index, "ns1")
-                    except Exception:
-                        pass
+            if 'last_url' not in st.session_state or st.session_state['last_url'] != url:
+                index = sh.initialize_pinecone()
+                try:
+				# ns1のデータを削除しようと試みる
+                    sh.delete_all_data_in_namespace(index, "ns1")
+                except Exception:
+            # エラーが発生しても何もせずに処理を続行する
+                    pass
 
-                    st.session_state['last_url'] = url
-                    scraped_data = sh.scrape_url(url)
-                    if scraped_data:  # スクレイピングされたデータが空でない場合のみ処理を続行
-                        combined_text, metadata_list = sh.prepare_text_and_metadata(sh.extract_keys_from_json(scraped_data))
-                        chunks = sh.split_text(combined_text)
-                        embeddings = sh.make_chunks_embeddings(chunks)
-                        sh.store_data_in_pinecone(index, embeddings, chunks, metadata_list, "ns1")
-                        time.sleep(10)
-                        st.success("ウェブサイトを読み込みました！")
-                else:
-                    st.info("同じウェブサイトのデータを使用")
+                st.session_state['last_url'] = url
+                scraped_data = sh.scrape_url(url)
+                combined_text, metadata_list = sh.prepare_text_and_metadata(sh.extract_keys_from_json(scraped_data))
+                chunks = sh.split_text(combined_text)
+                embeddings = sh.make_chunks_embeddings(chunks)
+                sh.store_data_in_pinecone(index, embeddings, chunks, metadata_list, "ns1")
+                time.sleep(10)
+                st.success("ウェブサイトを読み込みました！")
+            else:
+                st.info("同じウェブサイトのデータを使用")
 
 
     with col2:
