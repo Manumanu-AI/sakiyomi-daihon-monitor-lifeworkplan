@@ -27,8 +27,8 @@ openai_api_key = st.secrets['OPENAI_API_KEY']
 # URLからコンテンツをスクレイピングする関数
 def scrape_url(url):
     try:
-        if not url:  # URLが空の場合は空のリストを返す
-            return []
+        if not url:  # URLが空の場合は空の文字列を返す
+            return ""
         
         print(f"scrape_url: URL = {url}")
         headers = {"Authorization": f"Bearer {apifyapi_key}"}
@@ -36,7 +36,7 @@ def scrape_url(url):
         response = requests.post(apify_wcc_endpoint, json=payload, headers=headers)
 
         if response.status_code in [200, 201]:
-            return json.loads(response.text)  # レスポンスをJSONとしてパースして返す
+            return response.text  # レスポンスをテキストとして返す
         else:
             raise Exception(f"ステータスコード: {response.status_code}, レスポンス: {response.text}")
     except Exception as e:
